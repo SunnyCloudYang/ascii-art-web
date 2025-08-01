@@ -13,7 +13,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  assetPrefix: isProd ? undefined : `http://${internalHost}:3000`,
+  assetPrefix: isProd ? 'https://origakid.top/ascii-art-web' : `http://${internalHost}:3000`,
 }
 
 export default nextConfig
