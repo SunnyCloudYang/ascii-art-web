@@ -1,5 +1,9 @@
+const internalHost = process.env.TAURUS_DEV_HOST || 'localhost'
+const isProd = process.env.NODE_ENV === 'production'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -9,6 +13,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  assetPrefix: isProd ? undefined : `http://${internalHost}:3000`,
 }
 
 export default nextConfig
