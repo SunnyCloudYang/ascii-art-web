@@ -15,6 +15,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { GripVertical, Upload, Download } from "lucide-react";
+import { translations } from "@/lib/translations";
 
 // Define a type for colored ASCII characters
 type ColoredChar = {
@@ -23,6 +24,18 @@ type ColoredChar = {
 };
 
 export default function AsciiConverter() {
+  const [language, setLanguage] = useState<"en" | "zh" | "fr">("en");
+  const t = translations[language];
+
+  useEffect(() => {
+    const browserLang = navigator.language.slice(0, 2);
+    if (browserLang === "zh") {
+      setLanguage("zh");
+    } else if (browserLang === "fr") {
+      setLanguage("fr");
+    }
+  }, []);
+
   // Add this at the beginning of the component, right after the imports
   useEffect(() => {
     // Set document background to black
@@ -128,7 +141,7 @@ export default function AsciiConverter() {
     if (imageLoaded && imageRef.current) {
       convertToAscii();
     }
-  }, [resolution, inverted, grayscale, charSet, imageLoaded]);
+  }, [resolution, inverted, grayscale, charSet, imageLoaded, language]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -174,7 +187,7 @@ export default function AsciiConverter() {
 
     img.onload = () => {
       if (img.width === 0 || img.height === 0) {
-        setError("Invalid image dimensions");
+        setError(t.errorInvalidImage);
         setLoading(false);
         return;
       }
@@ -185,7 +198,7 @@ export default function AsciiConverter() {
     };
 
     img.onerror = () => {
-      setError("Failed to load image");
+      setError(t.errorFailedToLoadImage);
       setLoading(false);
     };
 
@@ -205,7 +218,7 @@ export default function AsciiConverter() {
 
     img.onload = () => {
       if (img.width === 0 || img.height === 0) {
-        setError("Invalid image dimensions");
+        setError(t.errorInvalidImage);
         setLoading(false);
         return;
       }
@@ -216,7 +229,7 @@ export default function AsciiConverter() {
     };
 
     img.onerror = () => {
-      setError("Failed to load image");
+      setError(t.errorFailedToLoadImage);
       setLoading(false);
     };
 
@@ -226,7 +239,7 @@ export default function AsciiConverter() {
 
   const handleFileUpload = (file: File) => {
     if (!file.type.startsWith("image/")) {
-      setError("Please upload an image file");
+      setError(t.errorNotImage);
       return;
     }
 
@@ -237,7 +250,7 @@ export default function AsciiConverter() {
       }
     };
     reader.onerror = () => {
-      setError("Failed to read file");
+      setError(t.errorFailedToReadFile);
     };
     reader.readAsDataURL(file);
   };
@@ -343,20 +356,20 @@ export default function AsciiConverter() {
   const convertToAscii = () => {
     try {
       if (!canvasRef.current || !imageRef.current) {
-        throw new Error("Canvas or image not available");
+        throw new Error(t.errorCanvasOrImage);
       }
 
       const img = imageRef.current;
 
       // Validate image dimensions
       if (img.width === 0 || img.height === 0) {
-        throw new Error("Invalid image dimensions");
+        throw new Error(t.errorInvalidImage);
       }
 
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
       if (!ctx) {
-        throw new Error("Could not get canvas context");
+        throw new Error(t.errorCanvasContext);
       }
 
       // Calculate dimensions based on resolution
@@ -378,9 +391,7 @@ export default function AsciiConverter() {
       try {
         imageData = ctx.getImageData(0, 0, img.width, img.height);
       } catch (e) {
-        throw new Error(
-          "Failed to get image data. This might be a CORS issue."
-        );
+        throw new Error(t.errorImageData);
       }
 
       const data = imageData.data;
@@ -453,7 +464,7 @@ export default function AsciiConverter() {
       setError(null);
     } catch (err) {
       console.error("Error converting to ASCII:", err);
-      setError(err instanceof Error ? err.message : "Unknown error occurred");
+      setError(err instanceof Error ? err.message : t.errorUnknown);
       setAsciiArt("");
       setColoredAsciiArt([]);
     }
@@ -461,7 +472,7 @@ export default function AsciiConverter() {
 
   const downloadAsciiArt = () => {
     if (!asciiArt) {
-      setError("No ASCII art to download");
+      setError(t.errorNoAsciiArtToDownload);
       return;
     }
 
@@ -501,19 +512,19 @@ export default function AsciiConverter() {
           {isDraggingFile && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 z-10 select-none">
               <div className="text-white text-xl font-mono">
-                Drop image here
+                {t.dropImageHere}
               </div>
             </div>
           )}
           {loading ? (
             <div className="text-white font-mono select-none">
-              Loading image...
+              {t.loadingImage}
             </div>
           ) : error ? (
             <div className="text-red-400 font-mono p-4 text-center select-none">
               {error}
               <div className="mt-2 text-white text-sm">
-                Try uploading a different image or refreshing the page.
+                {t.errorDifferentImage}
               </div>
             </div>
           ) : (
@@ -569,17 +580,41 @@ export default function AsciiConverter() {
         >
           <div className="space-y-4 p-2 md:p-4 border border-stone-700 rounded-md">
             <div className="space-y-1">
-              <h1 className="text-lg text-stone-100 font-bold">
-                ASCII Art Converter
-              </h1>
+              <h1 className="text-lg text-stone-100 font-bold">{t.title}</h1>
               {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
             </div>
 
             <div className="space-y-4 pt-2">
               <div className="space-y-2 border-t border-stone-700 pt-4">
                 <div className="flex items-center justify-between">
+                  <Label htmlFor="language" className="text-stone-300">
+                    Language
+                  </Label>
+                  <Select
+                    value={language}
+                    onValueChange={(value) =>
+                      setLanguage(value as "en" | "zh" | "fr")
+                    }
+                  >
+                    <SelectTrigger
+                      id="language"
+                      className="bg-stone-800 border-stone-700 text-stone-300 w-[120px]"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-stone-800 border-stone-700 text-stone-300">
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="zh">中文</SelectItem>
+                      <SelectItem value="fr">Français</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2 border-t border-stone-700 pt-4">
+                <div className="flex items-center justify-between">
                   <Label htmlFor="resolution" className="text-stone-300">
-                    Resolution: {resolution.toFixed(2)}
+                    {t.resolution}: {resolution.toFixed(2)}
                   </Label>
                 </div>
                 <Slider
@@ -595,39 +630,39 @@ export default function AsciiConverter() {
 
               <div className="space-y-2 border-t border-stone-700 pt-4">
                 <Label htmlFor="charset" className="text-stone-300">
-                  Character Set
+                  {t.characterSet}
                 </Label>
                 <Select value={charSet} onValueChange={setCharSet}>
                   <SelectTrigger
                     id="charset"
                     className="bg-stone-800 border-stone-700 text-stone-300"
                   >
-                    <SelectValue placeholder="Select character set" />
+                    <SelectValue placeholder={t.selectCharacterSet} />
                   </SelectTrigger>
                   <SelectContent className="bg-stone-800 border-stone-700 text-stone-300">
                     <SelectItem
                       value="standard"
                       className="focus:bg-stone-700 focus:text-stone-100"
                     >
-                      Standard
+                      {t.charSetStandard}
                     </SelectItem>
                     <SelectItem
                       value="detailed"
                       className="focus:bg-stone-700 focus:text-stone-100"
                     >
-                      Detailed
+                      {t.charSetDetailed}
                     </SelectItem>
                     <SelectItem
                       value="blocks"
                       className="focus:bg-stone-700 focus:text-stone-100"
                     >
-                      Block Characters
+                      {t.charSetBlocks}
                     </SelectItem>
                     <SelectItem
                       value="minimal"
                       className="focus:bg-stone-700 focus:text-stone-100"
                     >
-                      Minimal
+                      {t.charSetMinimal}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -641,7 +676,7 @@ export default function AsciiConverter() {
                   className="data-[state=checked]:bg-stone-600"
                 />
                 <Label htmlFor="invert" className="text-stone-300">
-                  Invert Colors
+                  {t.invertColors}
                 </Label>
               </div>
 
@@ -653,7 +688,7 @@ export default function AsciiConverter() {
                   className="data-[state=checked]:bg-stone-600"
                 />
                 <Label htmlFor="grayscale" className="text-stone-300">
-                  Grayscale Mode
+                  {t.grayscaleMode}
                 </Label>
               </div>
 
@@ -672,7 +707,7 @@ export default function AsciiConverter() {
                 <Button
                   onClick={() => {
                     if (!asciiArt) {
-                      setError("No ASCII art to copy");
+                      setError(t.errorNoAsciiArtToCopy);
                       return;
                     }
                     const el = document.createElement("textarea");
@@ -681,18 +716,18 @@ export default function AsciiConverter() {
                     el.select();
                     document.execCommand("copy");
                     document.body.removeChild(el);
-                    alert("ASCII art copied to clipboard!");
+                    alert(t.alertCopied);
                   }}
                   className="flex-1 bg-stone-700 hover:bg-stone-600 text-stone-200 border-stone-600"
                   disabled={loading || !imageLoaded}
                 >
-                  {sidebarNarrow ? "Copy" : "Copy ASCII Art"}
+                  {sidebarNarrow ? t.copy : t.copyAsciiArt}
                 </Button>
 
                 <Button
                   onClick={downloadAsciiArt}
                   className="bg-stone-700 hover:bg-stone-600 text-stone-200 border-stone-600"
-                  title="Download ASCII Art"
+                  title={t.downloadAsciiArt}
                   disabled={loading || !imageLoaded || !asciiArt}
                 >
                   <Download className="h-4 w-4" />
@@ -701,7 +736,7 @@ export default function AsciiConverter() {
                 <Button
                   onClick={() => fileInputRef.current?.click()}
                   className="bg-stone-700 hover:bg-stone-600 text-stone-200 border-stone-600"
-                  title="Upload Image"
+                  title={t.uploadImage}
                 >
                   <Upload className="h-4 w-4" />
                 </Button>
