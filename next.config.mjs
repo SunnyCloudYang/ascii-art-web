@@ -3,7 +3,7 @@ const isProd = process.env.NODE_ENV === "production";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "export",
-  distDir: "docs",
+  // distDir: "docs",
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -13,8 +13,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  assetPrefix: isProd ? "/ascii-art-web" : undefined,
-  basePath: isProd ? "/ascii-art-web" : undefined,
+  // assetPrefix: isProd ? "/ascii-art-web" : undefined,
+  // basePath: isProd ? "/ascii-art-web" : undefined,
 };
 
 export default nextConfig;
